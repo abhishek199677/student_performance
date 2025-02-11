@@ -74,7 +74,7 @@ def main():
     sleeping_hour = st.number_input("Sleeping hours", min_value=4, max_value=10, value=7)
     number_of_peper_solved = st.number_input("Number of question paper solved", min_value=0, max_value=10, value=5)
 
-    if st.button("Predict your score"):
+    if st.button("Predict your score"):    #data mapping
         user_data = {
             "Hours Studied": hour_sutdied,
             "Previous Scores": prvious_score,
