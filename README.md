@@ -12,7 +12,7 @@ conda activate studPerformance
 
 pip install -r requirements.txt
 
-pip freeze
+pip freeze        #must be done before running the stud.app
 
 git remote remove origin
 
