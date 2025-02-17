@@ -14,3 +14,5 @@ pip install -r requirements.txt
 
 
 git remote remove origin
+
+git remote -v
