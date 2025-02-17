@@ -13,3 +13,4 @@ try:
     print("Pinged your deployment. You successfully connected to MongoDB!")
 except Exception as e:
     print(e)
+    print("Failed to connect to MongoDB. Please ensure your MongoDB server is running and accessible.")
