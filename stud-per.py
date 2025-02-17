@@ -4,6 +4,15 @@ import numpy as np
 import pickle
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+
+# Creating collection inside MongoDB database
+uri = "mongodb+srv://email:password@cluster0.zfgws.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+client = MongoClient(uri, server_api=ServerApi('1'))
+db = client['student']
+collection = db['student_prediction']
+
 
 def load_model():
     with open("student_linearREG_final_model.pkl", 'rb') as file:
@@ -12,10 +21,8 @@ def load_model():
 
 
 def preprocesssing_input_data(data, scaler, le):
-    data['Extracurricular Activities'] = le.transform([data['Extracurricular Activities']])[0]
-    df = pd.DataFrame([data])
-    df_transformed = scaler.transform(df)
-    return df_transformed
+    # Ensure the input value is properly encoded
+    return scaler.transform(pd.DataFrame(data, index=[0]))
 
 
 def predict_data(data):  # here predict data is calling the above two functions i.e load_model and preprocesssing_input_data
@@ -26,10 +33,8 @@ def predict_data(data):  # here predict data is calling the above two functions 
 
 
 def main():
-
-
     st.markdown(
-    """
+        """
     <h1 style='
         text-align: center;
         color: #808080; /* Ash color */
@@ -41,14 +46,13 @@ def main():
     Students Performance Prediction
     </h1>
     """,
-    unsafe_allow_html=True,
-)
+        unsafe_allow_html=True,
+    )
     # st.title("Students Performance Prediction")
-    # st.write("Ēnter your data to get a prediction for your performance")  # Removed redundant line
+    # st.write("Enter your data to get a prediction for your performance")  # Removed redundant line
 
     st.markdown(
-        
-    """
+        """
     <div style='
         text-align: center;
         font-size: 2em;
@@ -62,11 +66,8 @@ def main():
         Enter your data to get a prediction for your performance
     </div>
     """,
-
-    unsafe_allow_html=True,
-)
-
-
+        unsafe_allow_html=True,
+    )
 
     hour_sutdied = st.number_input("Hours studied", min_value=1, max_value=10, value=5)
     prvious_score = st.number_input("Previous score", min_value=40, max_value=100, value=70)
@@ -74,16 +75,31 @@ def main():
     sleeping_hour = st.number_input("Sleeping hours", min_value=4, max_value=10, value=7)
     number_of_peper_solved = st.number_input("Number of question paper solved", min_value=0, max_value=10, value=5)
 
-    if st.button("Predict your score"):    #data mapping
+    # Load the model, scaler, and LabelEncoder
+    model, scaler, le = load_model()  # Load them here!
+
+    if st.button("Predict your score"):  # data mapping
+
+        # Use the same LabelEncoder instance to transform the input
+        extra_encoded = le.transform([extra])[0]
+
         user_data = {
             "Hours Studied": hour_sutdied,
             "Previous Scores": prvious_score,
-            "Extracurricular Activities": extra,
+            "Extracurricular Activities": extra_encoded,  # Use the *converted* value
             "Sleep Hours": sleeping_hour,
             "Sample Question Papers Practiced": number_of_peper_solved
         }
+
         prediction = predict_data(user_data)
         st.success(f"your prediciotn result is {prediction}")
+
+        # Convert prediction to a standard Python float before storing
+        user_data['prediction'] = round(float(prediction[0]), 2)  # Access the first element of the NumPy array
+        user_data = {key: int(value) if isinstance(value, np.integer) else float(value) if isinstance(value,
+                                                                                                        np.floating) else value
+                     for key, value in user_data.items()}
+        collection.insert_one(user_data)
 
 
 if __name__ == "__main__":
