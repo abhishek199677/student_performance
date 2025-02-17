@@ -12,7 +12,10 @@ conda activate studPerformance
 
 pip install -r requirements.txt
 
+pip freeze
 
 git remote remove origin
 
 git remote -v
+
+
